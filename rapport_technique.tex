@@ -1,0 +1,763 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{float}
+\usepackage{etoolbox}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{ragged2e}
+
+% Police Latin Modern
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\rmdefault}
+
+% Page
+\geometry{left=2cm, right=2cm, top=2cm, bottom=2cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\setlength{\headheight}{24.65pt}
+\setstretch{1.1}
+
+\preto\section{\clearpage}
+
+% Couleurs
+\definecolor{primary}{RGB}{0, 51, 102}
+\definecolor{secondary}{RGB}{0, 102, 204}
+\definecolor{bordercolor}{RGB}{180, 190, 210}
+\definecolor{codebg}{RGB}{248, 248, 250}
+
+% Bordure page
+\AddToShipoutPictureBG{%
+\begin{tikzpicture}[remember picture, overlay]
+    \draw[bordercolor, line width=0.8pt] 
+        ([xshift=0.3cm, yshift=-0.3cm]current page.north west) --
+        ([xshift=-0.3cm, yshift=-0.3cm]current page.north east) --
+        ([xshift=-0.3cm, yshift=0.3cm]current page.south east) --
+        ([xshift=0.3cm, yshift=0.3cm]current page.south west) --
+        cycle;
+\end{tikzpicture}
+}
+
+% En-tête et pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{primary}{\footnotesize\textbf{Rapport Technique : Banking Application}}}
+\fancyhead[R]{\textcolor{primary}{\footnotesize INF352 \textbullet\ Oberlin Keyanfe Djune}}
+\fancyfoot[C]{\textcolor{primary}{\footnotesize\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{bordercolor}\leaders\hrule height \headrulewidth\hfill}}
+
+% Titres
+\titleformat{\section}
+    {\color{primary}\Large\bfseries}
+    {}{0em}
+    {}[\color{bordercolor}\vspace{-0.2cm}\rule{\textwidth}{0.8pt}\vspace{0.3cm}]
+\titleformat{\subsection}
+    {\color{secondary}\large\bfseries}
+    {}{0em}
+    {}
+
+% Listes
+\setlist[itemize]{label=\textbullet, leftmargin=1.5cm, itemsep=0.2em}
+\setlist[enumerate]{leftmargin=1.5cm, itemsep=0.2em}
+
+% Listings
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{bordercolor},
+    numbers=none,
+    showstringspaces=false,
+    captionpos=b
+}
+
+% Commande pour en-tête de tableau
+\newcommand{\tableheader}[1]{\textbf{#1}}
+
+% Hyperliens
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=secondary
+}
+
+\begin{document}
+
+%============================================
+% PAGE DE GARDE
+%============================================
+\begin{titlepage}
+    \begin{center}
+        \vspace*{2cm}
+        
+        {\color{primary}\Huge\bfseries Rapport Technique\\[0.5cm]}
+        {\color{secondary}\LARGE Banking Application\\[1cm]}
+        
+        {\Large\bfseries API RESTful de Gestion Bancaire\\[0.5cm]}
+        {\large Spring Boot 3.2 \textbullet\ PostgreSQL \textbullet\ Render \textbullet\ Neon\\[2cm]}
+        
+        \rule{\textwidth}{0.8pt}\\[1.5cm]
+        
+        \begin{tabular}{rl}
+            \textbf{Auteur} & Oberlin Keyanfe Djune \\[0.3em]
+            \textbf{Module} & INF352, Assurance Qualité et Tests Logiciels \\[0.3em]
+            \textbf{Année} & 2025--2026 \\[0.3em]
+            \textbf{Version} & 1.0 \\
+        \end{tabular}
+        
+        \vfill
+        
+        {\small URL : \texttt{https://tp352.onrender.com/swagger-ui.html}}
+    \end{center}
+\end{titlepage}
+
+%============================================
+% 1. INTRODUCTION
+%============================================
+\section{Introduction}
+
+\subsection{Contexte}
+Le présent rapport technique documente l'architecture, la conception, l'implémentation et le déploiement de l'application \textbf{Banking Application}, un système bancaire exposé sous forme d'API RESTful développé dans le cadre du module INF352 --- Assurance Qualité et Tests Logiciels.
+
+\subsection{Objectifs du système}
+Le système répond aux exigences fonctionnelles suivantes :
+
+\begin{itemize}
+    \item Création et gestion des utilisateurs (nom, email, téléphone).
+    \item Authentification par token JWT.
+    \item Gestion des banques partenaires.
+    \item Création et gestion des comptes bancaires.
+    \item Opérations de dépôt sur compte.
+    \item Retraits d'un compte vers un compte d'un autre utilisateur.
+    \item Transferts entre les comptes d'un même utilisateur.
+    \item Documentation interactive de l'API via Swagger.
+\end{itemize}
+
+%============================================
+% 2. TECHNOLOGIES
+%============================================
+\section{Environnement Technologique}
+
+\subsection{Langage et Framework}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Composant} & \tableheader{Spécification} \\
+        \hline
+        Langage & Java 17 (LTS) \\
+        \hline
+        Framework & Spring Boot 3.2.0 \\
+        \hline
+        Build & Maven 3.8 avec Maven Wrapper (\texttt{mvnw}) \\
+        \hline
+        Serveur d'application & Apache Tomcat 10.1 (intégré) \\
+        \hline
+    \end{tabular}
+    \caption{Stack applicative}
+\end{table}
+
+\subsection{Persistance des données}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Composant} & \tableheader{Spécification} \\
+        \hline
+        ORM & Spring Data JPA / Hibernate 6.3 \\
+        \hline
+        Base de développement & H2 Database (mode mémoire) \\
+        \hline
+        Base de production & PostgreSQL 15 (Neon.tech) \\
+        \hline
+        Pool de connexions & HikariCP \\
+        \hline
+        Stratégie DDL & \texttt{create-drop} (dev) / \texttt{update} (prod) \\
+        \hline
+    \end{tabular}
+    \caption{Infrastructure de données}
+\end{table}
+
+\subsection{Bibliothèques principales}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \tableheader{Bibliothèque} & \tableheader{Version} & \tableheader{Rôle} \\
+        \hline
+        springdoc-openapi & 2.3.0 & Documentation Swagger \\
+        \hline
+        jjwt-api / jjwt-impl / jjwt-jackson & 0.12.3 & Gestion des tokens JWT \\
+        \hline
+        postgresql & -- & Driver JDBC PostgreSQL \\
+        \hline
+        h2 & -- & Base de développement \\
+        \hline
+        spring-boot-starter-validation & -- & Validation des entités \\
+        \hline
+        spring-boot-starter-test & -- & Framework de test \\
+        \hline
+    \end{tabular}
+    \caption{Dépendances Maven}
+\end{table}
+
+%============================================
+% 3. ARCHITECTURE LOGICIELLE
+%============================================
+\section{Architecture Logicielle}
+
+\subsection{Architecture en couches}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \tableheader{Couche} & \tableheader{Composants} & \tableheader{Responsabilité} \\
+        \hline
+        Présentation & Contrôleurs REST & Réception des requêtes HTTP, validation \\
+        \hline
+        Métier & Services & Logique applicative, règles de gestion \\
+        \hline
+        Accès données & Repositories JPA & Opérations CRUD, requêtes personnalisées \\
+        \hline
+        Modèle & Entités JPA & Mapping objet-relationnel \\
+        \hline
+    \end{tabular}
+    \caption{Architecture en couches}
+\end{table}
+
+\subsection{Diagramme de classes}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2cm, auto,
+        entity/.style={rectangle, draw=black, fill=white, text width=4cm, text centered, minimum height=2.2cm, font=\rmfamily\small, thick, rounded corners}]
+        
+        \node[entity] (user) {\textbf{User}\\\footnotesize id, name, email, phone, token};
+        \node[entity, below of=user, yshift=-1cm] (account) {\textbf{Account}\\\footnotesize id, accountNumber, balance, accountType};
+        \node[entity, right of=account, xshift=4cm] (bank) {\textbf{Bank}\\\footnotesize id, name, code};
+        
+        \draw[->, thick] (user.south) -- node[right] {1..*} (account.north);
+        \draw[->, thick] (bank.west) -- node[above] {1..*} (account.east);
+        
+    \end{tikzpicture}
+    \caption{Relations entre les entités principales}
+\end{figure}
+
+\subsection{Structure des packages}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Package} & \tableheader{Contenu} \\
+        \hline
+        \texttt{com.banking.config} & SwaggerConfig, CorsConfig \\
+        \hline
+        \texttt{com.banking.controller} & Contrôleurs REST \\
+        \hline
+        \texttt{com.banking.model} & User, Bank, Account \\
+        \hline
+        \texttt{com.banking.repository} & Repositories JPA \\
+        \hline
+        \texttt{com.banking.service} & Services métier \\
+        \hline
+        \texttt{com.banking.exception} & Gestion des exceptions \\
+        \hline
+    \end{tabular}
+    \caption{Organisation du code source}
+\end{table}
+
+%============================================
+% 4. MODÈLE DE DONNÉES
+%============================================
+\section{Modèle de Données}
+
+\subsection{Entité : User}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \tableheader{Colonne} & \tableheader{Type SQL} & \tableheader{Contrainte} & \tableheader{Description} \\
+        \hline
+        \texttt{id} & BIGINT & PRIMARY KEY & Identifiant unique \\
+        \hline
+        \texttt{name} & VARCHAR(255) & NOT NULL & Nom complet \\
+        \hline
+        \texttt{email} & VARCHAR(255) & UNIQUE, NOT NULL & Adresse email \\
+        \hline
+        \texttt{phone} & VARCHAR(255) & UNIQUE & Numéro de téléphone \\
+        \hline
+        \texttt{token} & VARCHAR(500) & -- & Token JWT actif \\
+        \hline
+        \texttt{created\_at} & TIMESTAMP & -- & Date de création \\
+        \hline
+        \texttt{updated\_at} & TIMESTAMP & -- & Date de modification \\
+        \hline
+    \end{tabular}
+    \caption{Structure de la table \texttt{users}}
+\end{table}
+
+\subsection{Entité : Bank}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \tableheader{Colonne} & \tableheader{Type SQL} & \tableheader{Contrainte} & \tableheader{Description} \\
+        \hline
+        \texttt{id} & BIGINT & PRIMARY KEY & Identifiant unique \\
+        \hline
+        \texttt{name} & VARCHAR(255) & UNIQUE, NOT NULL & Nom de la banque \\
+        \hline
+        \texttt{code} & VARCHAR(255) & UNIQUE, NOT NULL & Code bancaire \\
+        \hline
+        \texttt{created\_at} & TIMESTAMP & -- & Date de création \\
+        \hline
+    \end{tabular}
+    \caption{Structure de la table \texttt{banks}}
+\end{table}
+
+\subsection{Entité : Account}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \tableheader{Colonne} & \tableheader{Type SQL} & \tableheader{Contrainte} & \tableheader{Description} \\
+        \hline
+        \texttt{id} & BIGINT & PRIMARY KEY & Identifiant unique \\
+        \hline
+        \texttt{account\_number} & VARCHAR(255) & UNIQUE, NOT NULL & Numéro de compte \\
+        \hline
+        \texttt{balance} & NUMERIC(38,2) & NOT NULL, DEFAULT 0 & Solde du compte \\
+        \hline
+        \texttt{account\_type} & VARCHAR(255) & -- & CHECKING ou SAVINGS \\
+        \hline
+        \texttt{user\_id} & BIGINT & FOREIGN KEY & Référence utilisateur \\
+        \hline
+        \texttt{bank\_id} & BIGINT & FOREIGN KEY & Référence banque \\
+        \hline
+        \texttt{created\_at} & TIMESTAMP & -- & Date de création \\
+        \hline
+        \texttt{updated\_at} & TIMESTAMP & -- & Date de modification \\
+        \hline
+    \end{tabular}
+    \caption{Structure de la table \texttt{accounts}}
+\end{table}
+
+\subsection{Relations entre entités}
+
+\begin{itemize}
+    \item Un \textbf{User} possède 0 à plusieurs \textbf{Account} (relation OneToMany).
+    \item Une \textbf{Bank} possède 0 à plusieurs \textbf{Account} (relation OneToMany).
+    \item Un \textbf{Account} appartient à un seul \textbf{User} (relation ManyToOne).
+    \item Un \textbf{Account} appartient à une seule \textbf{Bank} (relation ManyToOne).
+\end{itemize}
+
+%============================================
+% 5. API ENDPOINTS
+%============================================
+\section{Spécification de l'API REST}
+
+\subsection{Endpoints publics (sans authentification)}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \tableheader{Méthode} & \tableheader{Endpoint} & \tableheader{Description} \\
+        \hline
+        POST & \texttt{/api/register} & Création d'un compte utilisateur \\
+        \hline
+        POST & \texttt{/api/login} & Connexion utilisateur \\
+        \hline
+        GET & \texttt{/api/banks} & Liste des banques disponibles \\
+        \hline
+        GET & \texttt{/api/banks/\{id\}} & Détail d'une banque \\
+        \hline
+        POST & \texttt{/api/banks} & Création d'une banque \\
+        \hline
+    \end{tabular}
+    \caption{Endpoints publics}
+\end{table}
+
+\subsection{Endpoints sécurisés (token JWT requis)}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \tableheader{Méthode} & \tableheader{Endpoint} & \tableheader{Description} \\
+        \hline
+        GET & \texttt{/api/accounts} & Liste des comptes de l'utilisateur \\
+        \hline
+        POST & \texttt{/api/accounts} & Création d'un compte bancaire \\
+        \hline
+        GET & \texttt{/api/accounts/\{num\}} & Détail d'un compte \\
+        \hline
+        DELETE & \texttt{/api/accounts/\{id\}} & Suppression d'un compte \\
+        \hline
+        POST & \texttt{/api/accounts/deposit} & Dépôt sur un compte \\
+        \hline
+        POST & \texttt{/api/transactions/withdraw} & Retrait vers un autre utilisateur \\
+        \hline
+        POST & \texttt{/api/transactions/transfer} & Transfert entre ses comptes \\
+        \hline
+    \end{tabular}
+    \caption{Endpoints sécurisés}
+\end{table}
+
+\subsection{Format des échanges}
+Tous les échanges se font au format JSON. L'authentification utilise le header HTTP \texttt{Authorization} avec la valeur du token JWT. Les dates sont au format ISO 8601. Les montants utilisent le type \texttt{BigDecimal} pour une précision financière optimale.
+
+\subsection{Documentation Swagger}
+La documentation interactive est accessible à l'adresse \texttt{/swagger-ui.html}. Un bouton \textbf{Authorize} permet d'injecter automatiquement le token JWT dans toutes les requêtes.
+
+%============================================
+% 6. RÈGLES DE GESTION
+%============================================
+\section{Règles de Gestion et Algorithmes}
+
+\subsection{Gestion des utilisateurs}
+
+\begin{enumerate}[label=\textbf{RG-\arabic*}.]
+    \item L'inscription requiert un nom, un email et un numéro de téléphone.
+    \item L'email doit être unique dans le système.
+    \item Le numéro de téléphone doit être unique dans le système.
+    \item L'identifiant, la date de création et la date de mise à jour sont générés automatiquement.
+\end{enumerate}
+
+\subsection{Gestion des banques}
+
+\begin{enumerate}[label=\textbf{RG-\arabic*}.]
+    \setcounter{enumi}{4}
+    \item La création d'une banque requiert un nom et un code.
+    \item Le code bancaire doit être unique dans le système.
+\end{enumerate}
+
+\subsection{Gestion des comptes bancaires}
+
+\begin{enumerate}[label=\textbf{RG-\arabic*}.]
+    \setcounter{enumi}{6}
+    \item Un compte est créé avec un solde initial de zéro (0,00).
+    \item Le numéro de compte est généré automatiquement au format \texttt{ACC-XXXXXXXX}.
+    \item Les types de compte disponibles sont \texttt{CHECKING} (courant) et \texttt{SAVINGS} (épargne).
+\end{enumerate}
+
+\subsection{Règles de transaction}
+
+\begin{enumerate}[label=\textbf{RG-\arabic*}.]
+    \setcounter{enumi}{9}
+    \item Tout dépôt requiert un montant strictement positif.
+    \item Le dépôt n'est autorisé que sur un compte appartenant à l'utilisateur authentifié.
+    \item Un retrait (vers un autre utilisateur) requiert :
+        \begin{itemize}
+            \item Un solde suffisant sur le compte source.
+            \item Des comptes source et destination différents.
+            \item Un montant strictement positif.
+        \end{itemize}
+    \item Un transfert (entre ses propres comptes) requiert :
+        \begin{itemize}
+            \item L'utilisateur doit être propriétaire des deux comptes.
+            \item Les comptes source et destination doivent être différents.
+            \item Le solde du compte source doit être suffisant.
+            \item Le montant doit être strictement positif.
+        \end{itemize}
+    \item Toute transaction nécessite un token JWT valide et non expiré (validité : 24 heures).
+\end{enumerate}
+
+\subsection{Séquence de traitement : Retrait}
+
+\begin{enumerate}
+    \item Réception du token, du compte source, du compte destination et du montant.
+    \item Validation du token JWT et extraction de l'utilisateur.
+    \item Vérification de l'existence du compte source.
+    \item Vérification de l'existence du compte destination.
+    \item Vérification que l'utilisateur est propriétaire du compte source.
+    \item Vérification que les comptes source et destination sont différents.
+    \item Vérification que le solde du compte source $\geq$ montant.
+    \item Vérification que le montant est strictement positif.
+    \item Débit du compte source : $\text{balance}_{\text{source}} \leftarrow \text{balance}_{\text{source}} - \text{montant}$.
+    \item Crédit du compte destination : $\text{balance}_{\text{dest}} \leftarrow \text{balance}_{\text{dest}} + \text{montant}$.
+    \item Sauvegarde atomique des deux comptes (opération transactionnelle).
+    \item Retour d'une réponse de succès au client.
+\end{enumerate}
+
+%============================================
+% 7. SÉCURITÉ
+%============================================
+\section{Sécurité et Authentification}
+
+\subsection{Mécanisme d'authentification}
+L'application utilise le standard \textbf{JWT (JSON Web Token)} :
+
+\begin{itemize}
+    \item Algorithme de signature : HMAC-SHA256 (HS256).
+    \item Clé secrète stockée dans le \texttt{TokenService}.
+    \item Durée de validité : 24 heures (86\,400\,000 ms).
+    \item Payload : \texttt{userId}, \texttt{email}, \texttt{name}, \texttt{iat}, \texttt{exp}.
+\end{itemize}
+
+\subsection{Flux d'authentification}
+
+\begin{enumerate}
+    \item L'utilisateur s'inscrit (\texttt{POST /api/register}) ou se connecte (\texttt{POST /api/login}).
+    \item Le serveur génère un token JWT signé et le stocke.
+    \item L'utilisateur inclut le token dans le header \texttt{Authorization}.
+    \item Le \texttt{TokenService} valide la signature, l'expiration et retrouve l'utilisateur.
+    \item En cas d'échec, une réponse HTTP 401 (Unauthorized) est retournée.
+\end{enumerate}
+
+\subsection{Gestion des erreurs}
+Toutes les exceptions sont interceptées par le \texttt{GlobalExceptionHandler} :
+
+\begin{lstlisting}[caption={Format standardisé des réponses d'erreur}]
+{
+    "timestamp": "2026-05-07T12:00:00",
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Solde insuffisant"
+}
+\end{lstlisting}
+
+%============================================
+% 8. DÉPLOIEMENT
+%============================================
+\section{Déploiement et Infrastructure}
+
+\subsection{Environnement de développement}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Paramètre} & \tableheader{Valeur} \\
+        \hline
+        Profil Spring & \texttt{dev} \\
+        \hline
+        Base de données & H2 Database (mémoire) \\
+        \hline
+        URL de connexion & \texttt{jdbc:h2:mem:bankingdb} \\
+        \hline
+        Port du serveur & 8080 \\
+        \hline
+        Console H2 & \texttt{http://localhost:8080/h2-console} \\
+        \hline
+        Swagger UI & \texttt{http://localhost:8080/swagger-ui.html} \\
+        \hline
+        Stratégie DDL & \texttt{create-drop} \\
+        \hline
+        Données initiales & \texttt{data.sql} (3 banques prédéfinies) \\
+        \hline
+    \end{tabular}
+    \caption{Configuration de développement}
+\end{table}
+
+\subsection{Environnement de production}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Paramètre} & \tableheader{Valeur} \\
+        \hline
+        Profil Spring & \texttt{prod} \\
+        \hline
+        Hébergeur & Render.com (Frankfurt) \\
+        \hline
+        URL publique & \texttt{https://tp352.onrender.com} \\
+        \hline
+        Base de données & Neon.tech (PostgreSQL 15) \\
+        \hline
+        Driver JDBC & \texttt{org.postgresql.Driver} \\
+        \hline
+        Pool de connexions & HikariCP (max 5, min 2) \\
+        \hline
+        Stratégie DDL & \texttt{update} \\
+        \hline
+        Déploiement & Continu (push sur \texttt{main}) \\
+        \hline
+    \end{tabular}
+    \caption{Configuration de production}
+\end{table}
+
+\subsection{Variables d'environnement}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Variable} & \tableheader{Description} \\
+        \hline
+        \texttt{DATABASE\_URL} & URL JDBC complète avec \texttt{?sslmode=require} \\
+        \hline
+        \texttt{DATABASE\_USERNAME} & Nom d'utilisateur Neon \\
+        \hline
+        \texttt{DATABASE\_PASSWORD} & Mot de passe Neon \\
+        \hline
+        \texttt{PORT} & Port d'écoute (8080) \\
+        \hline
+    \end{tabular}
+    \caption{Variables d'environnement sur Render}
+\end{table}
+
+\subsection{Schéma de déploiement}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2.2cm, auto,
+        block/.style={rectangle, draw=black, fill=white, text width=3cm, text centered, minimum height=1.4cm, font=\rmfamily\small, thick, rounded corners},
+        arrow/.style={->, thick, >=stealth}]
+        
+        \node[block] (github) {GitHub\\Dépôt source};
+        \node[block, right of=github, xshift=2.5cm] (render) {Render.com\\Spring Boot};
+        \node[block, right of=render, xshift=2.5cm] (neon) {Neon.tech\\PostgreSQL};
+        \node[block, below of=render, yshift=-1.4cm] (client) {Client HTTP\\Swagger / Postman};
+        
+        \draw[arrow] (github) -- node[above] {Push Git} (render);
+        \draw[arrow] (render) -- node[above] {JDBC + SSL} (neon);
+        \draw[arrow] (client) -- node[left] {HTTPS} (render);
+        
+    \end{tikzpicture}
+    \caption{Architecture de déploiement}
+\end{figure}
+
+%============================================
+% 9. PROCÉDURES
+%============================================
+\section{Procédures Techniques}
+
+\subsection{Lancement en local}
+
+\begin{enumerate}
+    \item Cloner le dépôt : \texttt{git clone https://github.com/oberlinkeyanfe-ops/TP352.git}
+    \item Se positionner dans le dossier : \texttt{cd TP352}
+    \item Lancer l'application : \texttt{./mvnw spring-boot:run}
+    \item Accéder à Swagger : \texttt{http://localhost:8080/swagger-ui.html}
+\end{enumerate}
+
+\subsection{Déploiement en production}
+
+\begin{enumerate}
+    \item Effectuer les modifications en local.
+    \item Commiter : \texttt{git add . \&\& git commit -m "message"}
+    \item Pousser : \texttt{git push origin main}
+    \item Render détecte le push et redéploie automatiquement.
+\end{enumerate}
+
+%============================================
+% 10. INVENTAIRE
+%============================================
+\section{Inventaire des Fichiers Sources}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|}
+        \hline
+        \tableheader{Fichier} & \tableheader{Rôle} \\
+        \hline
+        \texttt{BankingApplication.java} & Point d'entrée Spring Boot \\
+        \hline
+        \texttt{config/SwaggerConfig.java} & Configuration OpenAPI / Swagger \\
+        \hline
+        \texttt{config/CorsConfig.java} & Configuration CORS \\
+        \hline
+        \texttt{controller/TokenController.java} & Endpoints d'authentification \\
+        \hline
+        \texttt{controller/UserController.java} & Endpoints utilisateurs \\
+        \hline
+        \texttt{controller/BankController.java} & Endpoints banques \\
+        \hline
+        \texttt{controller/AccountController.java} & Endpoints comptes \\
+        \hline
+        \texttt{controller/TransactionController.java} & Endpoints transactions \\
+        \hline
+        \texttt{model/User.java} & Entité JPA utilisateur \\
+        \hline
+        \texttt{model/Bank.java} & Entité JPA banque \\
+        \hline
+        \texttt{model/Account.java} & Entité JPA compte bancaire \\
+        \hline
+        \texttt{repository/UserRepository.java} & Accès données utilisateurs \\
+        \hline
+        \texttt{repository/BankRepository.java} & Accès données banques \\
+        \hline
+        \texttt{repository/AccountRepository.java} & Accès données comptes \\
+        \hline
+        \texttt{service/TokenService.java} & Service de tokens JWT \\
+        \hline
+        \texttt{service/UserService.java} & Service utilisateurs \\
+        \hline
+        \texttt{service/BankService.java} & Service banques \\
+        \hline
+        \texttt{service/AccountService.java} & Service comptes \\
+        \hline
+        \texttt{service/TransactionService.java} & Service transactions \\
+        \hline
+        \texttt{exception/GlobalExceptionHandler.java} & Gestion globale des exceptions \\
+        \hline
+        \texttt{exception/ResourceNotFoundException.java} & Exception ressource introuvable \\
+        \hline
+        \texttt{application.properties} & Configuration Spring (dev) \\
+        \hline
+        \texttt{application-prod.properties} & Configuration Spring (prod) \\
+        \hline
+        \texttt{data.sql} & Données initiales \\
+        \hline
+    \end{tabular}
+    \caption{Inventaire des fichiers sources}
+\end{table}
+
+%============================================
+% 11. CONCLUSION
+%============================================
+\section{Conclusion}
+
+Le système \textbf{Banking Application} fournit une API RESTful complète pour la gestion bancaire, couvrant l'ensemble du cycle de vie des utilisateurs, des banques, des comptes et des transactions financières.
+
+L'architecture en couches garantit une séparation claire des responsabilités, facilitant la maintenance et l'évolution du code. Le déploiement sur Render avec une base de données Neon assure une disponibilité continue. La documentation Swagger interactive permet une prise en main rapide de l'API.
+
+\vspace{0.8cm}
+\begin{center}
+    \textcolor{secondary}{\large\texttt{https://tp352.onrender.com/swagger-ui.html}}
+\end{center}
+
+\end{document}

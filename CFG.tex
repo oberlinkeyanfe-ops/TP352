@@ -1,0 +1,73 @@
+\documentclass[12pt, a4paper]{report}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{CFG - Rapports}
+\cfoot{\thepage}
+
+\title{\Huge \textbf{Rapport Technique} \\ \vspace{0.5cm} \Large Graphes de Flux de Contrôle (CFG) \\ \vspace{0.3cm} \normalsize Application Bancaire}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Création de Banque (createBank)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{CFG/createBank.png}
+    \caption{Graphe de flux de contrôle - Création de Banque}
+    \label{fig:createBank}
+\end{figure}
+
+\newpage
+\section{Création d'Utilisateur (createUser)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{CFG/createUser.png}
+    \caption{Graphe de flux de contrôle - Création d'Utilisateur}
+    \label{fig:createUser}
+\end{figure}
+
+\newpage
+\section{Transfert de Fonds (transfer)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{CFG/transfer.png}
+    \caption{Graphe de flux de contrôle - Transfert de Fonds}
+    \label{fig:transfer}
+\end{figure}
+
+\newpage
+\section{Dépôt (deposit)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{CFG/deposit.png}
+    \caption{Graphe de flux de contrôle - Dépôt}
+    \label{fig:deposit}
+\end{figure}
+
+\newpage
+\section{Retrait (withdraw)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{CFG/withdraw.png}
+    \caption{Graphe de flux de contrôle - Retrait}
+    \label{fig:withdraw}
+\end{figure}
+
+
+\end{document}
