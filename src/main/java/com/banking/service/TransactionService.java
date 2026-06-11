@@ -68,6 +68,9 @@ public class TransactionService {
         Account destinationAccount = accountRepository.findByAccountNumber(destinationAccountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte destination non trouvé: " + destinationAccountNumber));
         
+        if (sourceAccount.getId().equals(destinationAccount.getId())) {
+            throw new RuntimeException("Le compte source et destination doivent être différents");
+        }
         // Vérifier que l'utilisateur est propriétaire des DEUX comptes
         if (!sourceAccount.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Non autorisé à transférer depuis le compte source");

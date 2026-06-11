@@ -15,28 +15,29 @@ public class SwaggerConfig {
     public OpenAPI bankingOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("🏦 Banking Application API")
+                        .title("Banking Application API")
                         .description("""
                                 API RESTful pour la gestion bancaire
                                 
-                                ## 🔑 Comment utiliser :
+                                ## Comment utiliser :
                                 
                                 ### 1. Créer un compte
                                 Utilisez **POST /api/register** avec votre nom, email et téléphone
                                 
                                 ### 2. S'authentifier dans Swagger
-                                - Copiez le token reçu
-                                - Cliquez sur le bouton **Authorize** 🔒 en haut
-                                - Collez votre token et validez
+                                - Copiez le token JWT reçu après l'inscription/connexion
+                                - Cliquez sur le bouton **Authorize** en haut
+                                - Collez uniquement le token (Swagger enverra automatiquement le préfixe `Bearer `)
+                                - Validez
                                 
                                 ### 3. Utiliser l'API
                                 Une fois authentifié, vous pouvez :
-                                - ✅ Créer des comptes bancaires
-                                - ✅ Faire des dépôts
-                                - ✅ Effectuer des retraits
-                                - ✅ Faire des transferts entre vos comptes
+                                - Créer des comptes bancaires
+                                - Faire des dépôts
+                                - Effectuer des retraits
+                                - Faire des transferts entre vos comptes
                                 
-                                > 💡 Le token sera automatiquement ajouté à toutes vos requêtes
+                                > Le token sera automatiquement ajouté à toutes vos requêtes
                                 """)
                         .version("1.0")
                         .contact(new Contact()

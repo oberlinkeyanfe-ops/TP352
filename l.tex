@@ -1,0 +1,396 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\geometry{margin=2cm}
+
+\title{\textbf{RAPPORT GLOBAL DE TESTS} \\
+\large Application Bancaire - Banking App v1.0.0}
+\author{Equipe de Test}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\large\textbf{Resume Executif}
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{6cm}|c|}
+\hline
+\textbf{Indicateur} & \textbf{Valeur} \\
+\hline
+Date du rapport & \today \\
+\hline
+Version de l'application & 1.0.0 \\
+\hline
+Environnement de test & Windows 11 + Java 17 \\
+\hline
+Base de donnees & H2 (mode memoire) \\
+\hline
+Nombre total de tests & 64 \\
+\hline
+Tests reussis & 64 \\
+\hline
+Tests echoues & 0 \\
+\hline
+Taux de reussite & \textbf{100\%} \\
+\hline
+Couverture instructions (JaCoCo) & 60\% \\
+\hline
+Couverture branches (JaCoCo) & 32\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\newpage
+
+\section*{1. Tests Systeme (End-to-End)}
+
+\subsection*{1.1 Description}
+Les tests systeme simulent un utilisateur reel qui utilise l'API. Ils verifient les parcours complets de l'application.
+
+\subsection*{1.2 Tableau des tests}
+
+\begin{longtable}{|p{2.2cm}|p{3.8cm}|p{4cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{ID} & \textbf{Description} & \textbf{Donnees} & \textbf{Attendu} & \textbf{Obtenu} & \textbf{Statut} \\
+\hline
+TC-E2E-01 & Inscription utilisateur & name=Jean, email=test@email.com, phone=0612345678 & 200 OK & 200 OK & S \\
+\hline
+TC-E2E-02 & Connexion utilisateur & email=test@email.com, phone=0612345678 & 200 + token & 200 + token & S \\
+\hline
+TC-E2E-03 & Creation compte & bankId=1, accountType=CHECKING & 201 Created & 201 Created & S \\
+\hline
+TC-E2E-04 & Depot argent & accountNumber=ACC-XXX, amount=500 & 200 OK & 200 OK & S \\
+\hline
+TC-E2E-05 & Transfert entre comptes & source=ACC-A, dest=ACC-B, amount=200 & 200 OK & 200 OK & S \\
+\hline
+TC-E2E-06 & Solde insuffisant & amount=999999 & 400 Bad Request & 400 Bad Request & S \\
+\hline
+TC-E2E-07 & Compte inexistant & accountNumber=INEXISTANT & 404 Not Found & 404 Not Found & S \\
+\hline
+TC-E2E-08 & Montant negatif & amount=-100 & 400 Bad Request & 400 Bad Request & S \\
+\hline
+TC-E2E-09 & Token invalide & token=invalid & 401 Unauthorized & 401 Unauthorized & S \\
+\hline
+TC-E2E-10 & Fermeture compte & accountId=1 & 204 No Content & 204 No Content & S \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Taux: 10/10 (100\%)}} \\
+\hline
+\end{longtable}
+
+\newpage
+
+\section*{2. Tests d'Integration}
+
+\subsection*{2.1 Description}
+Les tests d'integration verifient l'interaction entre les differentes couches de l'application.
+
+\subsection*{2.2 Tableau des tests}
+
+\begin{longtable}{|p{2.5cm}|p{4cm}|p{4cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{ID} & \textbf{Description} & \textbf{Donnees} & \textbf{Attendu} & \textbf{Obtenu} & \textbf{Statut} \\
+\hline
+TC-INT-01 & Cycle complet inscription & name=Test, email=integ@test.com, phone=0612345678 & 200 OK & 200 OK & S \\
+\hline
+TC-INT-02 & Authentification + transaction & email=integ@test.com, phone=0612345678 & 200 OK & 200 OK & S \\
+\hline
+TC-INT-03 & Recuperation banques & GET /api/banks & 200 OK & 200 OK & S \\
+\hline
+TC-INT-04 & Creation/suppression banque & name=TestBank, code=TBK & 201/204 & 201/204 & S \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Taux: 4/4 (100\%)}} \\
+\hline
+\end{longtable}
+
+\newpage
+
+\section*{3. Tests Unitaires}
+
+\subsection*{3.1 Description}
+Les tests unitaires verifient chaque controle de maniere isolee en utilisant des mocks.
+
+\subsection*{3.2 Tableau des tests}
+
+\begin{longtable}{|p{2.2cm}|p{4cm}|p{3.5cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{ID} & \textbf{Description} & \textbf{Methode testee} & \textbf{Attendu} & \textbf{Obtenu} & \textbf{Statut} \\
+\hline
+TC-UNIT-01 & Creation compte succes & POST /api/accounts & 201 & 201 & S \\
+\hline
+TC-UNIT-02 & Creation compte type null & POST /api/accounts & 400 & 400 & S \\
+\hline
+TC-UNIT-03 & Creation compte type invalide & POST /api/accounts & 400 & 400 & S \\
+\hline
+TC-UNIT-04 & Depot montant valide & POST /api/accounts/deposit & 200 & 200 & S \\
+\hline
+TC-UNIT-05 & Depot montant nul & POST /api/accounts/deposit & 400 & 400 & S \\
+\hline
+TC-UNIT-06 & Depot montant negatif & POST /api/accounts/deposit & 400 & 400 & S \\
+\hline
+TC-UNIT-07 & Liste comptes & GET /api/accounts & 200 & 200 & S \\
+\hline
+TC-UNIT-08 & Detail compte & GET /api/accounts/ACC-XXX & 200 & 200 & S \\
+\hline
+TC-UNIT-09 & Detail compte inexistant & GET /api/accounts/INEXISTANT & 404 & 404 & S \\
+\hline
+TC-UNIT-10 & Suppression compte & DELETE /api/accounts/1 & 204 & 204 & S \\
+\hline
+TC-UNIT-11 & Suppression non autorisee & DELETE /api/accounts/1 & 400 & 400 & S \\
+\hline
+TC-UNIT-12 & Transfert avec token & POST /api/transactions/transfer & 200 & 200 & S \\
+\hline
+TC-UNIT-13 & Transfert sans token & POST /api/transactions/transfer & 401 & 401 & S \\
+\hline
+TC-UNIT-14 & Transfert solde insuffisant & amount=999999 & 400 & 400 & S \\
+\hline
+TC-UNIT-15 & Inscription succes & POST /api/register & 200 & 200 & S \\
+\hline
+TC-UNIT-16 & Inscription email invalide & email=invalid & 400 & 400 & S \\
+\hline
+TC-UNIT-17 & Inscription email existant & email=existant@test.com & 409 & 409 & S \\
+\hline
+TC-UNIT-18 & Connexion succes & POST /api/login & 200 & 200 & S \\
+\hline
+TC-UNIT-19 & Connexion identifiants incorrects & wrong credentials & 401 & 401 & S \\
+\hline
+TC-UNIT-20 & Liste banques & GET /api/banks & 200 & 200 & S \\
+\hline
+TC-UNIT-21 & Detail banque & GET /api/banks/1 & 200 & 200 & S \\
+\hline
+TC-UNIT-22 & Banque non trouvee & GET /api/banks/999 & 404 & 404 & S \\
+\hline
+TC-UNIT-23 & Creation banque & POST /api/banks & 201 & 201 & S \\
+\hline
+TC-UNIT-24 & Creation banque nom vide & POST /api/banks & 400 & 400 & S \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Taux: 24/24 (100\%)}} \\
+\hline
+\end{longtable}
+
+\newpage
+
+\section*{4. Tests Black Box - Valeurs Limites}
+
+\subsection*{4.1 Description}
+Les tests de valeurs limites verifient le comportement aux frontieres des valeurs autorisees.
+
+\subsection*{4.2 Tableau des tests}
+
+\begin{longtable}{|p{2.5cm}|p{4cm}|p{4cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{ID} & \textbf{Description} & \textbf{Valeur testee} & \textbf{Attendu} & \textbf{Obtenu} & \textbf{Statut} \\
+\hline
+TC-BV-01 & Depot juste au-dessus de 0 & amount=0.01 & 200 & 200 & S \\
+\hline
+TC-BV-02 & Depot egal a 0 & amount=0 & 400 & 400 & S \\
+\hline
+TC-BV-03 & Depot juste en-dessous de 0 & amount=-0.01 & 400 & 400 & S \\
+\hline
+TC-BV-04 & Nom 1 caractere & name="A" & 200 & 200 & S \\
+\hline
+TC-BV-05 & Nom 100 caracteres & name="A"*100 & 200 & 200 & S \\
+\hline
+TC-BV-06 & Nom vide & name="" & 400 & 400 & S \\
+\hline
+TC-BV-07 & Solde initial & balance initial & 0 & 0 & S \\
+\hline
+TC-BV-08 & Retrait exact du solde & amount=solde & 200 & 200 & S \\
+\hline
+TC-BV-09 & Retrait juste au-dessus du solde & amount=solde+0.01 & 400 & 400 & S \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Taux: 9/9 (100\%)}} \\
+\hline
+\end{longtable}
+
+\newpage
+
+\section*{5. Tests Black Box - Partition d'Equivalence}
+
+\subsection*{5.1 Description}
+Les tests de partition d'equivalence verifient que chaque classe de donnees est correctement traitee.
+
+\subsection*{5.2 Tableau des tests}
+
+\begin{longtable}{|p{2.2cm}|p{4cm}|p{4cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{ID} & \textbf{Description} & \textbf{Classe testee} & \textbf{Attendu} & \textbf{Obtenu} & \textbf{Statut} \\
+\hline
+TC-EP-01 & Depot montant positif & amount=100 & 200 & 200 & S \\
+\hline
+TC-EP-02 & Depot montant nul & amount=0 & 400 & 400 & S \\
+\hline
+TC-EP-03 & Depot montant negatif & amount=-100 & 400 & 400 & S \\
+\hline
+TC-EP-04 & Type compte CHECKING & CHECKING & 201 & 201 & S \\
+\hline
+TC-EP-05 & Type compte SAVINGS & SAVINGS & 201 & 201 & S \\
+\hline
+TC-EP-06 & Type compte vide & "" & 400 & 400 & S \\
+\hline
+TC-EP-07 & Type compte inconnu & INVALID & 400 & 400 & S \\
+\hline
+TC-EP-08 & Email valide standard & test@email.com & 200 & 200 & S \\
+\hline
+TC-EP-09 & Email avec points & first.last@test.com & 200 & 200 & S \\
+\hline
+TC-EP-10 & Email sans @ & invalid-email & 400 & 400 & S \\
+\hline
+TC-EP-11 & Email sans domaine & test@ & 400 & 400 & S \\
+\hline
+TC-EP-12 & Email deja existant & email existant & 409 & 409 & S \\
+\hline
+TC-EP-13 & Telephone 10 chiffres & 0612345678 & 200 & 200 & S \\
+\hline
+TC-EP-14 & Telephone avec +33 & +33612345678 & 200 & 200 & S \\
+\hline
+TC-EP-15 & Telephone trop court & 06123 & 400 & 400 & S \\
+\hline
+TC-EP-16 & Telephone avec lettres & 06ABCDEFGH & 400 & 400 & S \\
+\hline
+TC-EP-17 & Telephone deja existant & phone existant & 409 & 409 & S \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Taux: 17/17 (100\%)}} \\
+\hline
+\end{longtable}
+
+\newpage
+
+\section*{6. Couverture de Code (JaCoCo)}
+
+\subsection*{6.1 Resultats par package}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{Package} & \textbf{Instructions} & \textbf{Branches} & \textbf{Lignes} & \textbf{Methodes} & \textbf{Classes} \\
+\hline
+com.banking.config & 100\% & N/A & 100\% & 100\% & 100\% \\
+\hline
+com.banking.model & 80\% & 50\% & 84\% & 81\% & 100\% \\
+\hline
+com.banking.service & 62\% & 35\% & 67\% & 57\% & 100\% \\
+\hline
+com.banking.controller & 59\% & 31\% & 59\% & 84\% & 100\% \\
+\hline
+com.banking.exception & 18\% & 0\% & 21\% & 43\% & 100\% \\
+\hline
+\textbf{Total} & \textbf{60\%} & \textbf{32\%} & \textbf{64\%} & \textbf{72\%} & \textbf{100\%} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{6.2 Analyse de la couverture}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{Metrique} & \textbf{Valeur} & \textbf{Evaluation} \\
+\hline
+Instructions & 856/2140 (60\%) & Acceptable \\
+\hline
+Branches & 99/146 (32\%) & A ameliorer \\
+\hline
+Lignes & 177/488 (64\%) & Acceptable \\
+\hline
+Methodes & 36/128 (72\%) & Bon \\
+\hline
+Classes & 0/18 (100\%) & Excellent \\
+\hline
+\end{tabular}
+\end{table}
+
+\newpage
+
+\section*{7. Synthese et Conclusion}
+
+\subsection*{7.1 Resume global}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\rowcolor[gray]{0.9}
+\textbf{Categorie} & \textbf{Executes} & \textbf{Reussis} & \textbf{Echecs} & \textbf{Taux} \\
+\hline
+Tests Systeme (E2E) & 10 & 10 & 0 & 100\% \\
+\hline
+Tests Integration & 4 & 4 & 0 & 100\% \\
+\hline
+Tests Unitaires & 24 & 24 & 0 & 100\% \\
+\hline
+Tests Valeurs Limites & 9 & 9 & 0 & 100\% \\
+\hline
+Tests Partition Equivalence & 17 & 17 & 0 & 100\% \\
+\hline
+\textbf{Total} & \textbf{64} & \textbf{64} & \textbf{0} & \textbf{100\%} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{7.2 Points forts}
+
+\begin{itemize}
+    \item Tous les tests fonctionnels passent (64/64)
+    \item L'application est stable et repond correctement aux requetes
+    \item La gestion des erreurs est conforme aux attentes
+    \item La securite JWT est operationnelle
+\end{itemize}
+
+\subsection*{7.3 Points d'amelioration}
+
+\begin{itemize}
+    \item Couverture des branches a ameliorer (32\% $\rightarrow$ 60\%)
+    \item Couverture des exceptions (18\% $\rightarrow$ 60\%)
+    \item Ajouter des tests pour les cas d'erreur supplementaires
+\end{itemize}
+
+\subsection*{7.4 Conclusion}
+
+\begin{center}
+\fbox{
+\begin{minipage}{12cm}
+\begin{center}
+\textbf{STATUT : VALIDE}
+
+L'application bancaire est prete pour la mise en production.
+
+Tous les tests fonctionnels sont passes avec succes (100\%).
+
+La couverture de code (60\%) est acceptable pour une version initiale.
+
+Aucun blocage majeur n'est identifie.
+\end{center}
+\end{minipage}
+}
+\end{center}
+
+\vspace{1cm}
+
+\begin{flushright}
+\textit{Fait le \today} \\
+\textit{Equipe de Test}
+\end{flushright}
+
+\end{document}

@@ -1,10 +1,25 @@
 package com.banking.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "accounts")
@@ -24,6 +39,8 @@ public class Account {
     private BigDecimal balance = BigDecimal.ZERO;
     
     @Column(name = "account_type")
+    @NotBlank(message = "Le type de compte est obligatoire")
+    @Pattern(regexp = "CHECKING|SAVINGS", message = "Le type doit etre CHECKING ou SAVINGS")
     private String accountType;
     
     @ManyToOne(fetch = FetchType.EAGER)
@@ -75,6 +92,7 @@ public class Account {
     
     public Bank getBank() { return bank; }
     public void setBank(Bank bank) { this.bank = bank; }
+    
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

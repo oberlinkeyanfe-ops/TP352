@@ -9,11 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/banks")
-@Tag(name = "🏛️ Banques", description = "Gestion des banques partenaires")
+@Tag(name = "Banques", description = "Gestion des banques partenaires")
 public class BankController {
     
     private final BankService bankService;
@@ -29,7 +31,7 @@ public class BankController {
     }
     
     @GetMapping("/{id}")
-    @Operation(summary = "Détail d'une banque")
+    @Operation(summary = "Detail d'une banque")
     public ResponseEntity<Bank> getBankById(
             @Parameter(description = "ID de la banque", required = true, example = "1")
             @PathVariable Long id) {
@@ -38,12 +40,26 @@ public class BankController {
     
     @PostMapping
     @Operation(summary = "Ajouter une banque")
-    public ResponseEntity<Bank> createBank(
+    public ResponseEntity<?> createBank(
             @Parameter(description = "Nom de la banque", required = true, example = "Banque Populaire")
             @RequestParam String name,
             
             @Parameter(description = "Code unique de la banque", required = true, example = "BP")
             @RequestParam String code) {
+        
+        // Validation des champs
+        if (name == null || name.trim().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Bad Request");
+            error.put("message", "Le nom de la banque est obligatoire");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+        if (code == null || code.trim().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Bad Request");
+            error.put("message", "Le code de la banque est obligatoire");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
         
         Bank bank = new Bank();
         bank.setName(name);
@@ -54,7 +70,7 @@ public class BankController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprimer une banque")
     public ResponseEntity<Void> deleteBank(
-            @Parameter(description = "ID de la banque à supprimer", required = true, example = "1")
+            @Parameter(description = "ID de la banque a supprimer", required = true, example = "1")
             @PathVariable Long id) {
         bankService.deleteBank(id);
         return ResponseEntity.noContent().build();

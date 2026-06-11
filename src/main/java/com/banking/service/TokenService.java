@@ -36,27 +36,38 @@ public class TokenService {
     
     @Transactional
     public User createUserAndGetToken(String name, String email, String phone) {
-        // Vérifier si l'utilisateur existe déjà
+        // Normaliser le telephone avant validation
+        String normalizedPhone = normalizePhoneNumber(phone);
+        
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email déjà utilisé: " + email);
         }
-        if (userRepository.existsByPhone(phone)) {
-            throw new RuntimeException("Téléphone déjà utilisé: " + phone);
+        if (userRepository.existsByPhone(normalizedPhone)) {
+            throw new RuntimeException("Téléphone déjà utilisé: " + normalizedPhone);
         }
         
-        // Créer un nouvel utilisateur
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setPhone(phone);
+        user.setPhone(normalizedPhone);
         user = userRepository.save(user);
         
-        // Générer le token
         String token = generateToken(user.getId(), email, name);
         user.setToken(token);
         return userRepository.save(user);
     }
-    
+
+    private String normalizePhoneNumber(String phone) {
+        if (phone == null) return null;
+        
+        // Si le numero commence par +33, le convertir en 0
+        if (phone.startsWith("+33")) {
+            return "0" + phone.substring(3);
+        }
+        
+        return phone;
+    }
+        
     @Transactional
     public User loginAndGetToken(String email, String phone) {
         User user = userRepository.findByEmailAndPhone(email, phone)
@@ -70,36 +81,80 @@ public class TokenService {
     
     public User validateToken(String token) {
         try {
-            // Valider le token JWT
+
+            if (token.toLowerCase().startsWith("bearer ")) {
+                token = token.substring(7).trim();
+            }
+
             Claims claims = Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
             
-            // Vérifier l'expiration
             if (claims.getExpiration().before(new Date())) {
                 throw new RuntimeException("Token expiré");
             }
             
-            // Chercher l'utilisateur avec ce token
             return userRepository.findByToken(token)
                     .orElseThrow(() -> new RuntimeException("Token invalide - utilisateur non trouvé"));
         } catch (Exception e) {
-            throw new RuntimeException("Token invalide ou expiré: " + e.getMessage());
+            // Au lieu de lancer RuntimeException, lancer une exception specifique
+            throw new SecurityException("Token invalide ou expiré: " + e.getMessage());
         }
     }
     
     public Long getUserIdFromToken(String token) {
         try {
+            if (token == null || token.trim().isEmpty()) {
+                throw new RuntimeException("Le token est manquant");
+            }
+            if (token.toLowerCase().startsWith("bearer ")) {
+                token = token.substring(7).trim();
+            }
             Claims claims = Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            return claims.get("userId", Long.class);
+            Object userIdObj = claims.get("userId");
+            if (userIdObj instanceof Integer) {
+                return ((Integer) userIdObj).longValue();
+            }
+            if (userIdObj instanceof Long) {
+                return (Long) userIdObj;
+            }
+            return Long.parseLong(String.valueOf(userIdObj));
         } catch (Exception e) {
             throw new RuntimeException("Impossible d'extraire l'ID du token");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("L'email est obligatoire");
+        }
+        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+        if (!email.matches(emailRegex)) {
+            throw new RuntimeException("Format email invalide. Exemple: nom@domaine.com");
+        }
+    }
+
+    private void validateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("Le nom est obligatoire");
+        }
+        if (name.length() < 2) {
+            throw new RuntimeException("Le nom doit contenir au moins 2 caracteres");
+        }
+    }
+
+    private void validateAccountType(String accountType) {
+        if (accountType == null || accountType.isBlank()) {
+            throw new RuntimeException("Le type de compte est obligatoire");
+        }
+        if (!accountType.equals("CHECKING") && !accountType.equals("SAVINGS")) {
+            throw new RuntimeException("Le type de compte doit etre CHECKING ou SAVINGS");
         }
     }
 }
