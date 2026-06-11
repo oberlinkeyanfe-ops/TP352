@@ -19,5 +19,3 @@ INSERT INTO banks (name, code, created_at)
 SELECT 'CCA', 'CCA', CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM banks WHERE code = 'CCA');
 
--- Insertion d'un utilisateur test
-INSERT INTO users (name, email, created_at, updated_at) VALUES ('Jean', 'jean@email.com', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
