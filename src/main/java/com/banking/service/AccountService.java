@@ -18,6 +18,9 @@ public class AccountService {
     private final BankService bankService;
     private final TokenService tokenService;
     
+    // Seuil maximal de solde : 1 million
+    private static final BigDecimal MAX_BALANCE = new BigDecimal("1000000.00");
+    
     public AccountService(AccountRepository accountRepository, 
                          BankService bankService, 
                          TokenService tokenService) {
@@ -73,21 +76,29 @@ public class AccountService {
     }
     
     @Transactional
-public Account deposit(String token, String accountNumber, BigDecimal amount) {
-    User user = tokenService.validateToken(token);
-    Account account = accountRepository.findByAccountNumber(accountNumber)
-            .orElseThrow(() -> new ResourceNotFoundException("Compte non trouvé: " + accountNumber));
-    
-    if (!account.getUser().getId().equals(user.getId())) {
-        throw new RuntimeException("Non autorisé à déposer sur ce compte");
+    public Account deposit(String token, String accountNumber, BigDecimal amount) {
+        User user = tokenService.validateToken(token);
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Compte non trouvé: " + accountNumber));
+        
+        if (!account.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Non autorisé à déposer sur ce compte");
+        }
+        
+        // Verification : montant doit etre positif
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Le montant doit être positif");
+        }
+        
+        // AJOUT : Verification du seuil maximal
+        BigDecimal newBalance = account.getBalance().add(amount);
+        if (newBalance.compareTo(MAX_BALANCE) > 0) {
+            throw new RuntimeException("Solde maximum autorisé est de " + MAX_BALANCE + " €. " +
+                                       "Solde actuel: " + account.getBalance() + " €, " +
+                                       "Depot demande: " + amount + " €");
+        }
+        
+        account.setBalance(newBalance);
+        return accountRepository.save(account);
     }
-    
-    // Modification ici : refuser montant <= 0
-    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new RuntimeException("Le montant doit être positif");
-    }
-    
-    account.setBalance(account.getBalance().add(amount));
-    return accountRepository.save(account);
-}
 }

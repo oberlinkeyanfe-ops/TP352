@@ -14,6 +14,9 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final TokenService tokenService;
     
+    // Seuil maximal de solde : 1 million
+    private static final BigDecimal MAX_BALANCE = new BigDecimal("1000000.00");
+    
     public TransactionService(AccountRepository accountRepository, TokenService tokenService) {
         this.accountRepository = accountRepository;
         this.tokenService = tokenService;
@@ -40,13 +43,20 @@ public class TransactionService {
             throw new RuntimeException("Le compte source et destination doivent être différents");
         }
         
-        // Vérifier le solde
+        // Vérifier le solde source
         if (sourceAccount.getBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Solde insuffisant. Solde actuel: " + sourceAccount.getBalance());
         }
         
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Le montant doit être positif");
+        }
+        
+        // AJOUT : Verifier que le compte destination ne depasse pas le seuil
+        BigDecimal newDestinationBalance = destinationAccount.getBalance().add(amount);
+        if (newDestinationBalance.compareTo(MAX_BALANCE) > 0) {
+            throw new RuntimeException("Le compte destination dépasserait le solde maximum autorisé de " + 
+                                       MAX_BALANCE + " €. Solde actuel: " + destinationAccount.getBalance() + " €");
         }
         
         // Effectuer le transfert
@@ -68,9 +78,6 @@ public class TransactionService {
         Account destinationAccount = accountRepository.findByAccountNumber(destinationAccountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte destination non trouvé: " + destinationAccountNumber));
         
-        if (sourceAccount.getId().equals(destinationAccount.getId())) {
-            throw new RuntimeException("Le compte source et destination doivent être différents");
-        }
         // Vérifier que l'utilisateur est propriétaire des DEUX comptes
         if (!sourceAccount.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Non autorisé à transférer depuis le compte source");
@@ -80,13 +87,25 @@ public class TransactionService {
             throw new RuntimeException("Le compte destination doit vous appartenir pour un transfert");
         }
         
-        // Vérifier le solde
+        // Vérifier que les comptes sont différents
+        if (sourceAccount.getId().equals(destinationAccount.getId())) {
+            throw new RuntimeException("Le compte source et destination doivent être différents");
+        }
+        
+        // Vérifier le solde source
         if (sourceAccount.getBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Solde insuffisant. Solde actuel: " + sourceAccount.getBalance());
         }
         
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Le montant doit être positif");
+        }
+        
+        // AJOUT : Verifier que le compte destination ne depasse pas le seuil
+        BigDecimal newDestinationBalance = destinationAccount.getBalance().add(amount);
+        if (newDestinationBalance.compareTo(MAX_BALANCE) > 0) {
+            throw new RuntimeException("Le compte destination dépasserait le solde maximum autorisé de " + 
+                                       MAX_BALANCE + " €. Solde actuel: " + destinationAccount.getBalance() + " €");
         }
         
         // Effectuer le transfert
